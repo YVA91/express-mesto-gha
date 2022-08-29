@@ -29,11 +29,43 @@ module.exports.createCards = async (req, res) => {
 };
 
 module.exports.deleteCards = async (req, res) => {
-  const UserId = req.params.cardId;
+  const CardId = req.params.cardId;
   try {
-    const cards = await Card.findByIdAndRemove(UserId, {
+    const cards = await Card.findByIdAndRemove(CardId, {
       new: true,
       runValidators: true,
+    });
+    res.status(200).send(cards);
+  } catch (err) {
+    if (err.name === 'ValidationError') {
+      return res.status(400).send({ message: 'Переданы некорректные данные' });
+    }
+    res.status(500).send({ message: 'Oшибка по-умолчанию', ...err });
+  }
+  return true;
+};
+
+module.exports.likeCard = async (req, res) => {
+  const CardId = req.params.cardId;
+  try {
+    const cards = await Card.findByIdAndUpdate(CardId, { $addToSet: { likes: req.user._id } }, {
+      new: true,
+    });
+    res.status(200).send(cards);
+  } catch (err) {
+    if (err.name === 'ValidationError') {
+      return res.status(400).send({ message: 'Переданы некорректные данные' });
+    }
+    res.status(500).send({ message: 'Oшибка по-умолчанию', ...err });
+  }
+  return true;
+};
+
+module.exports.dislikeCard = async (req, res) => {
+  const CardId = req.params.cardId;
+  try {
+    const cards = await Card.findByIdAndUpdate(CardId, { $pull: { likes: req.user._id } }, {
+      new: true,
     });
     res.status(200).send(cards);
   } catch (err) {
