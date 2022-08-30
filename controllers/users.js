@@ -5,8 +5,12 @@ module.exports.getUser = async (req, res) => {
     const users = await User.find({});
     res.status(200).send(users);
   } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(400).send({ message: 'Переданы некорректные данные' });
+    }
     res.status(500).send({ message: 'Oшибка по-умолчанию', ...err });
   }
+  return true;
 };
 
 module.exports.getUserById = async (req, res) => {
@@ -18,6 +22,9 @@ module.exports.getUserById = async (req, res) => {
     }
     res.status(200).send(users);
   } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(400).send({ message: 'Переданы некорректные данные' });
+    }
     res.status(500).send({ message: 'Oшибка по-умолчанию', ...err });
   }
   return true;
@@ -44,6 +51,9 @@ module.exports.updateUserInfo = async (req, res) => {
     });
     res.status(200).send(users);
   } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(404).send({ message: 'Запрашиваемый пользователь не найден' });
+    }
     if (err.name === 'ValidationError') {
       return res.status(400).send({ message: 'Переданы некорректные данные' });
     }
@@ -63,6 +73,9 @@ module.exports.updateUserAratar = async (req, res) => {
   } catch (err) {
     if (err.name === 'ValidationError') {
       return res.status(400).send({ message: 'Переданы некорректные данные' });
+    }
+    if (err.name === 'CastError') {
+      return res.status(404).send({ message: 'Запрашиваемый пользователь не найден' });
     }
     res.status(500).send({ message: 'Oшибка по-умолчанию', ...err });
   }

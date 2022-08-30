@@ -5,8 +5,12 @@ module.exports.getCards = async (req, res) => {
     const cards = await Card.find({});
     res.status(200).send(cards);
   } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(400).send({ message: 'Переданы некорректные данные' });
+    }
     res.status(500).send({ message: 'Oшибка по-умолчанию', ...err });
   }
+  return true;
 };
 
 module.exports.createCards = async (req, res) => {
@@ -53,6 +57,9 @@ module.exports.likeCard = async (req, res) => {
     });
     res.status(200).send(cards);
   } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(404).send({ message: 'Передан несуществующий _id карточки' });
+    }
     if (err.name === 'ValidationError') {
       return res.status(400).send({ message: 'Переданы некорректные данные' });
     }
@@ -69,6 +76,9 @@ module.exports.dislikeCard = async (req, res) => {
     });
     res.status(200).send(cards);
   } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(404).send({ message: 'Передан несуществующий _id карточки' });
+    }
     if (err.name === 'ValidationError') {
       return res.status(400).send({ message: 'Переданы некорректные данные' });
     }
