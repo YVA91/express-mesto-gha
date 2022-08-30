@@ -60,7 +60,7 @@ module.exports.likeCard = async (req, res) => {
     if (err.name === 'CastError') {
       return res.status(404).send({ message: 'Передан несуществующий _id карточки' });
     }
-    if (err.name === 'ValidationError') {
+    if (err.name === 'NotValididId') {
       return res.status(400).send({ message: 'Переданы некорректные данные' });
     }
     res.status(500).send({ message: 'Oшибка по-умолчанию', ...err });
@@ -79,7 +79,7 @@ module.exports.dislikeCard = async (req, res) => {
     if (err.name === 'CastError') {
       return res.status(404).send({ message: 'Передан несуществующий _id карточки' });
     }
-    if (err.name === 'ValidationError') {
+    if (err.name === 'NotValididId') {
       return res.status(400).send({ message: 'Переданы некорректные данные' });
     }
     res.status(500).send({ message: 'Oшибка по-умолчанию', ...err });
