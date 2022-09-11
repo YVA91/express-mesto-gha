@@ -35,14 +35,19 @@ module.exports.createCards = async (req, res) => {
 module.exports.deleteCards = async (req, res) => {
   const CardId = req.params.cardId;
   try {
-    const cards = await Card.findByIdAndRemove(CardId, {
-      new: true,
-      runValidators: true,
-    });
-    if (!cards) {
-      return res.status(404).send({ message: 'Передан несуществующий _id карточки' });
+    const UserId = await Card.findById(req.params.cardId);
+    if (req.user._id === UserId.owner._id.valueOf()) {
+      const cards = await Card.findByIdAndRemove(CardId, {
+        new: true,
+        runValidators: true,
+      });
+      if (!cards) {
+        return res.status(404).send({ message: 'Передан несуществующий _id карточки' });
+      }
+      res.status(200).send(cards);
+    } else {
+      return res.status(403).send({ message: 'Недостаточно прав' });
     }
-    res.status(200).send(cards);
   } catch (err) {
     if (err.name === 'CastError') {
       return res.status(400).send({ message: 'Переданы некорректные данные' });

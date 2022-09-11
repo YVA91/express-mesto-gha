@@ -1,22 +1,23 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const cookieParser = require('cookie-parser');
+const auth = require('./middlewares/auth');
 const RoutesUsers = require('./routes/users');
 const RoutesCards = require('./routes/cards');
-
+const {
+  login,
+  createUsers,
+} = require('./controllers/users');
+require('dotenv').config();
 
 const { PORT = 3000 } = process.env;
 const app = express();
-
-
+app.use(cookieParser());
 
 app.use(express.json());
-
-app.use((req, res, next) => {
-  req.user = {
-    _id: '630a33e4144bb53119200aa1',
-  };
-  next();
-});
+app.post('/signin', login);
+app.post('/signup', createUsers);
+app.use(auth);
 
 app.use('/', RoutesUsers);
 app.use('/', RoutesCards);

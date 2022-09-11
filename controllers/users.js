@@ -1,10 +1,27 @@
-const User = require('../models/name');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const User = require('../models/name');
 
-module.exports.getUser = async (req, res) => {
+module.exports.getUsers = async (req, res) => {
   try {
     const users = await User.find({});
+    res.status(200).send(users);
+  } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(400).send({ message: 'Переданы некорректные данные' });
+    }
+    res.status(500).send({ message: 'Oшибка по-умолчанию', ...err });
+  }
+  return true;
+};
+
+module.exports.getThisUser = async (req, res) => {
+  try {
+    const id = req.user;
+    const users = await User.findById(id);
+    if (!users) {
+      return res.status(404).send({ message: 'Запрашиваемый пользователь не найден' });
+    }
     res.status(200).send(users);
   } catch (err) {
     if (err.name === 'CastError') {
@@ -34,11 +51,13 @@ module.exports.getUserById = async (req, res) => {
 
 module.exports.createUsers = async (req, res) => {
   const {
-    name, about, avatar, email, password
+    name, about, avatar, email, password,
   } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10)
+  const hashedPassword = await bcrypt.hash(password, 10);
   try {
-    const users = await User({ name, about, avatar, email, password: hashedPassword}).save();
+    const users = await User({
+      name, about, avatar, email, password: hashedPassword,
+    }).save();
     res.status(200).send(users);
   } catch (err) {
     if (err.name === 'ValidationError') {
@@ -46,6 +65,7 @@ module.exports.createUsers = async (req, res) => {
     }
     res.status(500).send({ message: 'Oшибка по-умолчанию', ...err });
   }
+  return true;
 };
 
 module.exports.updateUserInfo = async (req, res) => {
@@ -91,16 +111,16 @@ module.exports.updateUserAratar = async (req, res) => {
 module.exports.login = async (req, res) => {
   const { email, password } = req.body;
   try {
-    const users = await User.findOne({email});
+    const users = await User.findOne({ email }).select('+password');
     if (!users) {
       return res.status(401).send({ message: 'Неправильные почта или пароль' });
     }
     const match = await bcrypt.compare(password, users.password);
-    if(!match) {
+    if (!match) {
       return res.status(401).send({ message: 'Неправильные почта или пароль' });
     }
-    const token =  jwt.sign({ _id: users._id }, 'some-secret-key', { expiresIn: '7d' });
-      res.cookie('jwt', token, { maxAge: 3600000, httpOnly: true, sameSite: true,}).status(200).send({ token });
+    const token = jwt.sign({ _id: users._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    res.cookie('jwt', token, { maxAge: 3600000, httpOnly: true, sameSite: true }).status(200).send({ token });
   } catch (err) {
     if (err.name === 'CastError') {
       return res.status(400).send({ message: 'Переданы некорректные данные' });
@@ -109,4 +129,3 @@ module.exports.login = async (req, res) => {
   }
   return true;
 };
-
