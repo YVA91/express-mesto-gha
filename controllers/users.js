@@ -1,55 +1,51 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/name');
+const { BadRequestError } = require('../errors/BadRequestError');
+const { UnauthorizedError } = require('../errors/UnauthorizedError');
+const { NotFoundError } = require('../errors/NotFoundError');
 
-module.exports.getUsers = async (req, res) => {
+module.exports.getUsers = async (req, res, next) => {
   try {
     const users = await User.find({});
     res.status(200).send(users);
   } catch (err) {
-    if (err.name === 'CastError') {
-      return res.status(400).send({ message: 'Переданы некорректные данные' });
-    }
-    res.status(500).send({ message: 'Oшибка по-умолчанию', ...err });
+    next(err);
   }
-  return true;
 };
 
-module.exports.getThisUser = async (req, res) => {
+module.exports.getThisUser = async (req, res, next) => {
   try {
     const id = req.user;
     const users = await User.findById(id);
     if (!users) {
-      return res.status(404).send({ message: 'Запрашиваемый пользователь не найден' });
+      throw new NotFoundError('Запрашиваемый пользователь не найден');
     }
     res.status(200).send(users);
   } catch (err) {
-    if (err.name === 'CastError') {
-      return res.status(400).send({ message: 'Переданы некорректные данные' });
-    }
-    res.status(500).send({ message: 'Oшибка по-умолчанию', ...err });
+    next(err);
   }
   return true;
 };
 
-module.exports.getUserById = async (req, res) => {
+module.exports.getUserById = async (req, res, next) => {
   const id = req.params.userId;
   try {
     const users = await User.findById(id);
     if (!users) {
-      return res.status(404).send({ message: 'Запрашиваемый пользователь не найден' });
+      throw new NotFoundError('Запрашиваемый пользователь не найден');
     }
     res.status(200).send(users);
   } catch (err) {
     if (err.name === 'CastError') {
-      return res.status(400).send({ message: 'Переданы некорректные данные' });
+      next(new BadRequestError('Переданы некорректные данные'));
     }
-    res.status(500).send({ message: 'Oшибка по-умолчанию', ...err });
+    next(err);
   }
   return true;
 };
 
-module.exports.createUsers = async (req, res) => {
+module.exports.createUsers = async (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
@@ -61,14 +57,14 @@ module.exports.createUsers = async (req, res) => {
     res.status(200).send(users);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      return res.status(400).send({ message: 'Переданы некорректные данные' });
+      next(new BadRequestError('Переданы некорректные данные'));
     }
-    res.status(500).send({ message: 'Oшибка по-умолчанию', ...err });
+    next(err);
   }
   return true;
 };
 
-module.exports.updateUserInfo = async (req, res) => {
+module.exports.updateUserInfo = async (req, res, next) => {
   try {
     const UserId = req.user._id;
     const users = await User.findByIdAndUpdate(UserId, req.body, {
@@ -78,17 +74,17 @@ module.exports.updateUserInfo = async (req, res) => {
     res.status(200).send(users);
   } catch (err) {
     if (err.name === 'CastError') {
-      return res.status(404).send({ message: 'Запрашиваемый пользователь не найден' });
+      throw new NotFoundError('Запрашиваемый пользователь не найден');
     }
     if (err.name === 'ValidationError') {
-      return res.status(400).send({ message: 'Переданы некорректные данные' });
+      next(new BadRequestError('Переданы некорректные данные'));
     }
-    res.status(500).send({ message: 'Oшибка по-умолчанию', ...err });
+    next(err);
   }
   return true;
 };
 
-module.exports.updateUserAratar = async (req, res) => {
+module.exports.updateUserAratar = async (req, res, next) => {
   const UserId = req.user._id;
   try {
     const users = await User.findByIdAndUpdate(UserId, req.body, {
@@ -98,34 +94,34 @@ module.exports.updateUserAratar = async (req, res) => {
     res.status(200).send(users);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      return res.status(400).send({ message: 'Переданы некорректные данные' });
+      next(new BadRequestError('Переданы некорректные данные'));
     }
     if (err.name === 'CastError') {
-      return res.status(404).send({ message: 'Запрашиваемый пользователь не найден' });
+      throw new NotFoundError('Запрашиваемый пользователь не найден');
     }
-    res.status(500).send({ message: 'Oшибка по-умолчанию', ...err });
+    next(err);
   }
   return true;
 };
 
-module.exports.login = async (req, res) => {
+module.exports.login = async (req, res, next) => {
   const { email, password } = req.body;
   try {
     const users = await User.findOne({ email }).select('+password');
     if (!users) {
-      return res.status(401).send({ message: 'Неправильные почта или пароль' });
+      throw new UnauthorizedError('Неправильные почта или пароль');
     }
     const match = await bcrypt.compare(password, users.password);
     if (!match) {
-      return res.status(401).send({ message: 'Неправильные почта или пароль' });
+      throw new UnauthorizedError('Неправильные почта или пароль');
     }
     const token = jwt.sign({ _id: users._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.cookie('jwt', token, { maxAge: 3600000, httpOnly: true, sameSite: true }).status(200).send({ token });
   } catch (err) {
     if (err.name === 'CastError') {
-      return res.status(400).send({ message: 'Переданы некорректные данные' });
+      next(new BadRequestError('Переданы некорректные данные'));
     }
-    res.status(500).send({ message: 'Oшибка по-умолчанию', ...err });
+    next(err);
   }
   return true;
 };
