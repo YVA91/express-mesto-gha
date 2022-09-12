@@ -7,10 +7,10 @@ const {
   likeCard,
   dislikeCard,
 } = require('../controllers/cards');
-const { 
+const {
   validationСardId,
   validationCreateCards,
- } = require('../validation/validation');
+} = require('../validation/validation');
 
 router.get('/cards', getCards);
 router.post('/cards', validationCreateCards, createCards);

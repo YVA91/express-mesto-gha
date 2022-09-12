@@ -10,10 +10,10 @@ const {
 } = require('./controllers/users');
 require('dotenv').config();
 
-const { 
+const {
   validationSignUp,
   validationSignIn,
- } = require('./validation/validation')
+} = require('./validation/validation');
 
 const { PORT = 3000 } = process.env;
 const app = express();
