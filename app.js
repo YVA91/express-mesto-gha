@@ -10,13 +10,18 @@ const {
 } = require('./controllers/users');
 require('dotenv').config();
 
+const { 
+  validationSignUp,
+  validationSignIn,
+ } = require('./validation/validation')
+
 const { PORT = 3000 } = process.env;
 const app = express();
 app.use(cookieParser());
 
 app.use(express.json());
-app.post('/signin', login);
-app.post('/signup', createUsers);
+app.post('/signin', validationSignIn, login);
+app.post('/signup', validationSignUp, createUsers);
 app.use(auth);
 
 app.use('/', RoutesUsers);
