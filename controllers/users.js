@@ -4,6 +4,7 @@ const User = require('../models/name');
 const { BadRequestError } = require('../errors/BadRequestError');
 const { UnauthorizedError } = require('../errors/UnauthorizedError');
 const { NotFoundError } = require('../errors/NotFoundError');
+const { ConflictError } = require('../errors/ConflictError');
 
 module.exports.getUsers = async (req, res, next) => {
   try {
@@ -58,6 +59,9 @@ module.exports.createUsers = async (req, res, next) => {
   } catch (err) {
     if (err.name === 'ValidationError') {
       next(new BadRequestError('Переданы некорректные данные'));
+    }
+    if (err.name === 'MongoServerError') {
+      next(new ConflictError('Пользователь с таким электнонным адресом уже зарегистрирован'));
     }
     next(err);
   }

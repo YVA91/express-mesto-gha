@@ -1,19 +1,19 @@
 const Card = require('../models/card');
+const { BadRequestError } = require('../errors/BadRequestError');
+const { NotFoundError } = require('../errors/NotFoundError');
+const { ForbiddenError } = require('../errors/ForbiddenError');
 
-module.exports.getCards = async (req, res) => {
+module.exports.getCards = async (req, res, next) => {
   try {
     const cards = await Card.find({});
     res.status(200).send(cards);
   } catch (err) {
-    if (err.name === 'CastError') {
-      return res.status(400).send({ message: 'Переданы некорректные данные' });
-    }
-    res.status(500).send({ message: 'Oшибка по-умолчанию', ...err });
+    next(err);
   }
   return true;
 };
 
-module.exports.createCards = async (req, res) => {
+module.exports.createCards = async (req, res, next) => {
   const {
     name, link, likes, createdAt,
   } = req.body;
@@ -25,14 +25,14 @@ module.exports.createCards = async (req, res) => {
     res.status(200).send(cards);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      return res.status(400).send({ message: 'Переданы некорректные данные' });
+      next(new BadRequestError('Переданы некорректные данные'));
     }
-    res.status(500).send({ message: 'Oшибка по-умолчанию', ...err });
+    next(err);
   }
   return true;
 };
 
-module.exports.deleteCards = async (req, res) => {
+module.exports.deleteCards = async (req, res, next) => {
   const CardId = req.params.cardId;
   try {
     const UserId = await Card.findById(req.params.cardId);
@@ -42,55 +42,55 @@ module.exports.deleteCards = async (req, res) => {
         runValidators: true,
       });
       if (!cards) {
-        return res.status(404).send({ message: 'Передан несуществующий _id карточки' });
+        throw new NotFoundError('Передан несуществующий _id карточки');
       }
       res.status(200).send(cards);
     } else {
-      return res.status(403).send({ message: 'Недостаточно прав' });
+      throw new ForbiddenError('Недостаточно прав');
     }
   } catch (err) {
     if (err.name === 'CastError') {
-      return res.status(400).send({ message: 'Переданы некорректные данные' });
+      next(new BadRequestError('Переданы некорректные данные'));
     }
-    res.status(500).send({ message: 'Oшибка по-умолчанию', ...err });
+    next(err);
   }
   return true;
 };
 
-module.exports.likeCard = async (req, res) => {
+module.exports.likeCard = async (req, res, next) => {
   const CardId = req.params.cardId;
   try {
     const cards = await Card.findByIdAndUpdate(CardId, { $addToSet: { likes: req.user._id } }, {
       new: true,
     });
     if (!cards) {
-      return res.status(404).send({ message: 'Передан несуществующий _id карточки' });
+      throw new NotFoundError('Передан несуществующий _id карточки');
     }
     res.status(200).send(cards);
   } catch (err) {
     if (err.name === 'CastError') {
-      return res.status(400).send({ message: 'Переданы некорректные данные' });
+      next(new BadRequestError('Переданы некорректные данные'));
     }
-    res.status(500).send({ message: 'Oшибка по-умолчанию', ...err });
+    next(err);
   }
   return true;
 };
 
-module.exports.dislikeCard = async (req, res) => {
+module.exports.dislikeCard = async (req, res, next) => {
   const CardId = req.params.cardId;
   try {
     const cards = await Card.findByIdAndUpdate(CardId, { $pull: { likes: req.user._id } }, {
       new: true,
     });
     if (!cards) {
-      return res.status(404).send({ message: 'Передан несуществующий _id карточки' });
+      throw new NotFoundError('Передан несуществующий _id карточки');
     }
     res.status(200).send(cards);
   } catch (err) {
     if (err.name === 'CastError') {
-      return res.status(400).send({ message: 'Переданы некорректные данные' });
+      next(new BadRequestError('Переданы некорректные данные'));
     }
-    res.status(500).send({ message: 'Oшибка по-умолчанию', ...err });
+    next(err);
   }
   return true;
 };
