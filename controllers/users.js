@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/name');
 const { BadRequestError } = require('../errors/BadRequestError');
+const { UnauthorizedError } = require('../errors/UnauthorizedError');
 const { NotFoundError } = require('../errors/NotFoundError');
 const { ConflictError } = require('../errors/ConflictError');
 
@@ -115,11 +116,16 @@ module.exports.updateUserAratar = async (req, res, next) => {
 module.exports.login = async (req, res, next) => {
   const { email, password } = req.body;
   try {
-    const users = await User.findUserByCredentials({ email, password });
-    if (users) {
-      const token = jwt.sign({ _id: users._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-      res.status(200).cookie('jwt', token, { maxAge: 3600000, httpOnly: true, sameSite: true }).send({ token });
+    const users = await User.findOne({ email }).select('+password');
+    if (!users) {
+      throw new UnauthorizedError('Неправильные почта или пароль');
     }
+    const match = await bcrypt.compare(password, users.password);
+    if (!match) {
+      throw new UnauthorizedError('Неправильные почта или пароль');
+    }
+    const token = jwt.sign({ _id: users._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    res.status(200).cookie('jwt', token, { maxAge: 3600000, httpOnly: true, sameSite: true }).send({ token });
   } catch (err) {
     if (err.name === 'CastError') {
       next(new BadRequestError('Переданы некорректные данные'));
