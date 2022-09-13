@@ -11,7 +11,6 @@ const {
 } = require('./controllers/users');
 require('dotenv').config();
 const { errorHandler } = require('./middlewares/errorHandler');
-const { NotFoundError } = require('./errors/NotFoundError');
 
 const {
   validationSignUp,
@@ -25,9 +24,6 @@ app.use(cookieParser());
 app.use(express.json());
 app.post('/signin', validationSignIn, login);
 app.post('/signup', validationSignUp, createUsers);
-app.use((req, res, next) => {
-  next(new NotFoundError('Неправильный путь'));
-});
 app.use(auth);
 app.use('/', RoutesUsers);
 app.use('/', RoutesCards);

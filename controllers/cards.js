@@ -33,20 +33,21 @@ module.exports.createCards = async (req, res, next) => {
 };
 
 module.exports.deleteCards = async (req, res, next) => {
-  const CardId = req.params.cardId;
+  const Id = req.params.cardId;
   try {
-    const UserId = await Card.findById(req.params.cardId);
-    if (req.user._id === UserId.owner._id.valueOf()) {
-      const cards = await Card.findByIdAndRemove(CardId, {
-        new: true,
-        runValidators: true,
-      });
-      if (!cards) {
-        throw new NotFoundError('Передан несуществующий _id карточки');
+    const CardId = await Card.findById(Id);
+    if (CardId) {
+      if (req.user._id === CardId.owner._id.toString()) {
+        await Card.findByIdAndRemove(CardId, {
+          new: true,
+          runValidators: true,
+        });
+        res.status(200).send({ CardId });
+      } else {
+        throw new ForbiddenError('Недостаточно прав');
       }
-      res.status(200).send(cards);
     } else {
-      throw new ForbiddenError('Недостаточно прав');
+      throw new NotFoundError('Передан несуществующий _id карточки');
     }
   } catch (err) {
     if (err.name === 'CastError') {
