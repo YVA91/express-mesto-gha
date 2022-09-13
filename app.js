@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
+const { errors } = require('celebrate');
 const auth = require('./middlewares/auth');
 const RoutesUsers = require('./routes/users');
 const RoutesCards = require('./routes/cards');
@@ -31,6 +32,7 @@ app.use('/', RoutesCards);
 app.use((req, res, next) => {
   next(new NotFoundError('Неправильный путь'));
 });
+app.use(errors());
 app.use(errorHandler);
 
 async function main() {
