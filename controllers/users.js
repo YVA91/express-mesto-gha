@@ -125,7 +125,7 @@ module.exports.login = async (req, res, next) => {
       throw new UnauthorizedError('Неправильные почта или пароль');
     }
     const token = jwt.sign({ _id: users._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.cookie('jwt', token, { maxAge: 3600000, httpOnly: true, sameSite: true }).status(200).send({ token });
+    res.status(200).cookie('jwt', token, { maxAge: 3600000, httpOnly: true, sameSite: true }).send({ token });
   } catch (err) {
     if (err.name === 'CastError') {
       next(new BadRequestError('Переданы некорректные данные'));
