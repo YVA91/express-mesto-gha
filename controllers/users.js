@@ -132,5 +132,4 @@ module.exports.login = async (req, res, next) => {
     }
     next(err);
   }
-  return true;
 };
