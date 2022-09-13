@@ -55,7 +55,12 @@ module.exports.createUsers = async (req, res, next) => {
     const users = await User({
       name, about, avatar, email, password: hashedPassword,
     }).save();
-    res.status(200).send(users);
+    res.status(200).send({
+      name: users.name,
+      about: users.about,
+      avatar: users.avatar,
+      email: users.email,
+    });
   } catch (err) {
     if (err.name === 'ValidationError') {
       next(new BadRequestError('Переданы некорректные данные'));
