@@ -26,7 +26,6 @@ module.exports.getThisUser = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-  return true;
 };
 
 module.exports.getUserById = async (req, res, next) => {
@@ -43,7 +42,6 @@ module.exports.getUserById = async (req, res, next) => {
     }
     next(err);
   }
-  return true;
 };
 
 module.exports.createUsers = async (req, res, next) => {
@@ -70,7 +68,6 @@ module.exports.createUsers = async (req, res, next) => {
     }
     next(err);
   }
-  return true;
 };
 
 module.exports.updateUserInfo = async (req, res, next) => {
@@ -90,7 +87,6 @@ module.exports.updateUserInfo = async (req, res, next) => {
     }
     next(err);
   }
-  return true;
 };
 
 module.exports.updateUserAratar = async (req, res, next) => {
@@ -110,7 +106,6 @@ module.exports.updateUserAratar = async (req, res, next) => {
     }
     next(err);
   }
-  return true;
 };
 
 module.exports.login = async (req, res, next) => {
@@ -124,7 +119,7 @@ module.exports.login = async (req, res, next) => {
     if (!match) {
       throw new UnauthorizedError('Неправильные почта или пароль');
     }
-    const token = jwt.sign({ _id: users._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ _id: users._id }, 'SECRET', { expiresIn: '7d' });
     res.status(200).cookie('jwt', token, { maxAge: 3600000, httpOnly: true, sameSite: true }).send({ token });
   } catch (err) {
     if (err.name === 'CastError') {
