@@ -1,14 +1,13 @@
 const { celebrate, Joi } = require('celebrate');
-const validator = require("validator");
+const validator = require('validator');
 
 const validatorUrl = (value) => {
-  let result = validator.isURL(value); 
-  if(result) {
-   return value;
-  } else {
-   throw new Error('URL validation err');
+  const result = validator.isURL(value);
+  if (!result) {
+    throw new Error('URL validation err');
   }
- };
+  return value;
+};
 
 module.exports.validationGetUserById = celebrate({
   params: Joi.object().keys({

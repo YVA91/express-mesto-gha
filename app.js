@@ -11,7 +11,7 @@ const {
 } = require('./controllers/users');
 require('dotenv').config();
 const { errorHandler } = require('./middlewares/errorHandler');
-const { NotFoundError } = require('./errors/NotFoundError')
+const { NotFoundError } = require('./errors/NotFoundError');
 
 const {
   validationSignUp,
