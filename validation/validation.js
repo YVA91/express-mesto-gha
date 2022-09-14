@@ -1,4 +1,14 @@
 const { celebrate, Joi } = require('celebrate');
+const validator = require("validator");
+
+const validatorUrl = (value) => {
+  let result = validator.isURL(value); 
+  if(result) {
+   return value;
+  } else {
+   throw new Error('URL validation err');
+  }
+ };
 
 module.exports.validationGetUserById = celebrate({
   params: Joi.object().keys({
@@ -13,13 +23,13 @@ module.exports.validationUpdateUserInfo = celebrate({
   }),
 });
 
-module.exports.validationUpdateUserAratar = celebrate({
+module.exports.validationUpdateUserAvatar = celebrate({
   body: Joi.object().keys({
     avatar: Joi.string().required().regex(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)/),
   }),
 });
 
-module.exports.validationСardId = celebrate({
+module.exports.validationCardId = celebrate({
   params: Joi.object().keys({
     cardId: Joi.string().required().length(24),
   }),
@@ -28,7 +38,7 @@ module.exports.validationСardId = celebrate({
 module.exports.validationCreateCards = celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
-    link: Joi.string().required().regex(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)/),
+    link: Joi.string().required().custom(validatorUrl),
   }),
 });
 

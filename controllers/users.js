@@ -89,7 +89,7 @@ module.exports.updateUserInfo = async (req, res, next) => {
   }
 };
 
-module.exports.updateUserAratar = async (req, res, next) => {
+module.exports.updateUserAvatar = async (req, res, next) => {
   const UserId = req.user._id;
   try {
     const users = await User.findByIdAndUpdate(UserId, req.body, {

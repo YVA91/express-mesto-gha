@@ -11,6 +11,7 @@ const {
 } = require('./controllers/users');
 require('dotenv').config();
 const { errorHandler } = require('./middlewares/errorHandler');
+const { NotFoundError } = require('./errors/NotFoundError')
 
 const {
   validationSignUp,
@@ -27,11 +28,11 @@ app.post('/signup', validationSignUp, createUsers);
 app.use(auth);
 app.use('/', RoutesUsers);
 app.use('/', RoutesCards);
+app.use((req, res, next) => {
+  next(new NotFoundError('Неправильный путь'));
+});
 app.use(errors());
 app.use(errorHandler);
-app.use((req, res) => {
-  res.status(404).send({ message: 'Неправильный путь' });
-});
 
 async function main() {
   await mongoose.connect('mongodb://localhost:27017/mestodb', {
