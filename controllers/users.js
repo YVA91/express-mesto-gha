@@ -6,6 +6,8 @@ const { UnauthorizedError } = require('../errors/UnauthorizedError');
 const { NotFoundError } = require('../errors/NotFoundError');
 const { ConflictError } = require('../errors/ConflictError');
 
+const { NODE_ENV, JWT_SECRET } = process.env;
+
 module.exports.getUsers = async (req, res, next) => {
   try {
     const users = await User.find({});
@@ -119,7 +121,7 @@ module.exports.login = async (req, res, next) => {
     if (!match) {
       throw new UnauthorizedError('Неправильные почта или пароль');
     }
-    const token = jwt.sign({ _id: users._id }, 'SECRET', { expiresIn: '7d' });
+    const token = jwt.sign({ _id: users._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
     res.status(200).cookie('jwt', token, { maxAge: 3600000, httpOnly: true, sameSite: true }).send({ token });
   } catch (err) {
     if (err.name === 'CastError') {
